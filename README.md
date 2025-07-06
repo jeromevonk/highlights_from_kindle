@@ -1,7 +1,7 @@
 Instructions:
 
 - Get "My Clippings.txt" from your kindle
-- Install dependencies: `pip **install** python-docx`
+- Install dependencies: `pip install python-docx`
 - Run `python convert.py`
 
 ```
