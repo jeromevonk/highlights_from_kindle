@@ -4,8 +4,6 @@ Instructions:
 - Install dependencies: `pip **install** python-docx`
 - Run `python convert.py`
 
-
-
 ```
 ✓ Document saved: The Big Short Inside the Doomsday Machine_Highlights.docx (1 highlights)
 ✓ Document saved: The Picture of Dorian Gray_Highlights.docx (30 highlights)
