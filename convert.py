@@ -24,18 +24,42 @@ def sanitize_filename(filename):
     return filename
 
 
+def normalize_string(text):
+    """Helper function to normalize strings for comparison"""
+    # Remove BOM if present
+    if text.startswith('\ufeff'):
+        text = text[1:]
+    # Convert to bytes and back to handle encoding issues
+    text = text.encode('utf-8').decode('utf-8')
+    # Remove non-printable characters
+    text = ''.join(char for char in text if ord(char) >= 32)
+    # Normalize whitespace
+    text = ' '.join(text.split())
+    return text.strip()
+
+
 def extract_book_title(book_info):
     """
-    Extract clean book title from the book info line
+    Extract clean book title from the book info line and normalize it
     """
-    # Remove author info in parentheses and clean up
+    # First normalize the input
+    book_info = normalize_string(book_info)
+
+    # Remove any text in parentheses (like author names)
     title = re.sub(r'\([^)]*\)', '', book_info)
-    title = title.strip()
 
-    # Remove extra spaces
-    title = re.sub(r'\s+', ' ', title)
+    # Remove any text after (Z-Library) if it exists
+    if "(Z-Library)" in title:
+        title = title.split("(Z-Library)")[0]
 
-    return title
+    # Remove any remaining author information after the book title
+    # Often marked by a hyphen or other separators
+    for separator in [' - ', ' – ', ' by ']:
+        if separator in title:
+            title = title.split(separator)[0]
+
+    # Final normalization to ensure consistent format
+    return normalize_string(title)
 
 
 def create_book_document(book_title, highlights, output_dir):
@@ -58,7 +82,7 @@ def create_book_document(book_title, highlights, output_dir):
     # Add highlights
     for i, highlight in enumerate(highlights, 1):
         # Add highlight number
-        doc.add_heading(f'Highlight {i}', level=2)
+        # doc.add_heading(f'Highlight {i}', level=2)
 
         # Add metadata (page, position)
         if highlight['metadata']:
@@ -144,12 +168,15 @@ def extract_all_highlights(input_file_path, output_dir="highlights_output"):
             # Extract clean book title
             book_title = extract_book_title(book_info)
 
-            # Initialize book in dictionary if not exists
-            if book_title not in books_highlights:
-                books_highlights[book_title] = []
+            # Create a normalized version of the title for dictionary key
+            dict_key = normalize_string(book_title)
+
+            if dict_key not in books_highlights:
+                print(f"Novo livro encontrado: {dict_key}")
+                books_highlights[dict_key] = []
 
             # Add highlight to book
-            books_highlights[book_title].append({
+            books_highlights[dict_key].append({
                 'book_info': book_info,
                 'metadata': metadata,
                 'text': highlight_text
